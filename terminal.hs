@@ -7,7 +7,7 @@
 -- Imports
 import System.IO
 import System.Process
--- import System.POSIX
+import System.Posix.Process
 import System.Directory
 -- import System.Console.Rainbow
 
