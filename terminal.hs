@@ -1,122 +1,152 @@
--- Sebastian Collins
--- Capstone Project
--- Functional Programmming Shell
--- Programming was a mistake. This entire field is nothing but trash.
+-- Terminal Emulator 
+-- Capstone Program
+-- Terminal
 
-
--- Imports
 import System.IO
-import System.Process
 import System.Posix.Process
+import System.Posix.Env
+import System.Process
 import System.Directory
--- import System.Console.Rainbow
 
 -- Simple Main Method
 main :: IO()
 main = do
-        -- Get the userInput
-        inputCall <- userInput ">hash "
-        -- If statement loop. If the function returns true, then you continue looping, otherwise you exit the terminal.
-        if inputCall then main else return()
+        inputcall <- uinput ">hash " 
+        if inputcall then main else return()
 
-
--- User Input String Parsing
-userInput :: String -> IO Bool
-userInput prompt = do
-    -- Display a prompt, waiting for a user input
+-- Get the user input.
+uinput :: String -> IO Bool
+uinput prompt = do
     putStr $ prompt
     hFlush stdout
-    -- Put the User input inside of the str variable
     str <- getLine
     case str of
-        -- Correctly exit the program
         "exit"  -> return False
-        
-        -- Change Directory
-        "cd"    -> do
-            str2 <- setCurrentDirectory str
-            print str2
-            return True
-        
-        -- List Directory 
-        "ls"    -> do
-            putStrLn "cd has not been implemented"
-            return True 
-        -- Clear Command
-        "clear" -> do
-            -- str2 <- clearScreen
-            _ <- System.Process.system "reset"
-            return True
-        
-        -- Move Command
-        "mv"    -> do
-            putStrLn "mv has not been implemented"
-            return True
+        _       -> finput (words str)
 
-        -- Manual Page (After Cild Process)
-        "man"    -> do
-            putStrLn "man has not been implemented"
-            return True
+-- Case the user input
+finput :: [String] -> IO Bool
+finput (x:xs)
+        | x == "clear"  = reset 
+        | x == "pwd"    = prworkdir 
+        | x == "ls"     = listDirec
+        | x == "cd"     = changedir xs
+        | x == "mkdir"  = imkdir xs
+        | x == "rmdir"  = irmdir xs
+        | x == "cp"     = icp xs
+        | x == "rm"     = irm xs
+        | x == "mv"     = imv xs
+        | x == "more"   = imore xs
+        | otherwise     = othercommand (x:xs)
 
-        -- Make Directory
-        "mkdir"    -> do
-            putStrLn "mkdir has not been implemented"
-            return True
+-- Display some information about a file
+imore :: [String] -> IO Bool
+imore []     = do
+        putStrLn("Error: You need to select a file to read more about it!")
+        return True
+imore (x:xs) = do
+        file <- readFile x
+        putStr file
+        return True 
 
-        -- Remove Directory
-        "rmdir"    -> do
-            putStrLn "rmdir has not been implemented"
-            return True
+-- Remove a file
+irm :: [String] -> IO Bool
+irm []     = do
+        putStrLn("Error: You must select a file to remove!")
+        return True
+irm (x:xs) = do
+        removeFile x
+        return True
 
-        -- Touch
-        "touch"    -> do
-            putStrLn "touch has not been implemented"
-            return True
+-- Rename a file
+imv :: [String] -> IO Bool
+imv []     = do
+        putStrLn("Error: You must select a name!")
+        return True
+imv (x:y:xs) = do
+        renameFile x y
+        return True
 
-        -- Locate
-        "locate"    -> do
-            putStrLn "locate has not been implemented"
-            return True
+-- Copy a file
+icp :: [String] -> IO Bool
+icp []     = do
+        putStrLn("Error: You must select a file to copy!")
+        return True
+icp (x:xs) = do
+        copyFile x x
+        return True
 
-        -- Printing Working Directory
-        "pwd"   -> do
-            str2 <- getCurrentDirectory 
-            print str2
-            return True        
-   
-        -- Demo the Color Properties
-        -- "color" -> do
-                 
-        -- Unknown Function
-        _       -> do 
-            putStrLn ("ERROR: " ++ str ++ " is not a valid command")
-            userInput prompt
+-- Make a directory
+imkdir :: [String] -> IO Bool
+imkdir []     = do
+        putStrLn("Error: You must name a directory!")
+        return True 
+imkdir (x:xs) = do
+        createDirectory x
+        putStrLn("Success! " ++ x ++ " has been created")
+        return True
 
+-- Remove a directory
+irmdir :: [String] -> IO Bool
+irmdir []     = do
+        putStrLn("Error: You must select a directory!")
+        return True
+irmdir (x:xs) = do
+        removeDirectory x
+        putStrLn("Success! " ++ x ++ " has been removed")
+        return True
 
--- Background Processes
+-- Reset the window
+reset :: IO Bool
+reset = do
+        _ <- System.Process.system "reset"
+        return True
 
--- Check Child Process
--- childProcess :: String -> IO 
--- Taking a break as this stuff is incredibly infuriating
--- Trying to find the Process ID is like Rocket Science
--- Trying to kill is it performing brain surgery in space
--- and trying to reap the dead ones is like trying to find an honest politician.
+-- Print the working directory
+prworkdir :: IO Bool
+prworkdir = do
+        pwd <- getCurrentDirectory
+        print pwd
+        return True
 
+-- Read the help file and print the commands
+help :: IO Bool
+help = do
+        putStrLn("Here's the help command that has yet to implemented")
+        return True
 
+-- List the Current Directory Contents
+listDirec :: IO Bool
+listDirec = do
+        pwd <- getCurrentDirectory
+        cdr <- getDirectoryContents pwd
+        mapM_ putStrLn cdr
+        return True
 
+-- Other Commands (that may or may not be cheating)
+othercommand :: [String] -> IO Bool
+othercommand (x:xs) = do
+        rawSystem x xs
+        return True
 
--- Store Commands (Remembering Commands)
--- Desc. : On the up arrow, retrieve the previous command.
---
--- pastCommands ::  [String]
--- pastCommands [] = print ""
--- pastCommands  x = print x
--- pastCommands (x:xs) = print x + print pastCommands xs
+-- Change the Current Directory
+changedir :: [String] -> IO Bool
+changedir []     = do
+        putStrLn("Error: You must select a directory!")
+        return True
+changedir (x:xs) = do
+        setCurrentDirectory x
+        return True
 
--- Executing another program
+-- Print that there exists an error
+ierror :: String -> IO Bool
+ierror str = do
+        putStrLn("Error: " ++ str ++ " hasn't been implemented")
+        return True
 
-
--- Haskell Color Support
---
-
-
+-- Here Lies Forking Command
+-- May he rest his soul until I can figure out how to
+-- ressurect him.
+-- forkProcess comes with a giant warning: since any other 
+-- running threads are not copied into the child process, it's easy to go wrong: 
+-- e.g. by accessing some shared resource that was held by another thread in the parent.
